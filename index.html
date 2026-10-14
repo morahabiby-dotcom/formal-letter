@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Formal Letter Quiz</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#fff7e6;--card:#fff;--ink:#27332c;--mut:#6a766e;--line:#eadfbf;--a:#3d9dcf;--b:#e8608a;--c:#3f9142;--d:#ffb238;--p:#8a5cd6;--ok:#e1f5de;--no:#fde4ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b2420;--card:#26332c;--ink:#f2f0e6;--mut:#a9b5ad;--line:#3a4a41;--ok:#21402a;--no:#47252f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b2420;--card:#26332c;--ink:#f2f0e6;--mut:#a9b5ad;--line:#3a4a41;--ok:#21402a;--no:#47252f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;font-size:18px}
+.w{max-width:680px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:26px;padding:22px;margin-bottom:16px;box-shadow:0 8px 0 rgba(0,0,0,.08)}
+h1{font-size:30px;margin:6px 0}h2{font-size:24px;margin:0 0 10px}
+.hero{text-align:center;font-size:56px}
+.btn{display:block;width:100%;font:inherit;font-weight:800;font-size:19px;color:#fff;border:0;border-radius:18px;padding:15px;margin:10px 0;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.2)}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.a{background:var(--a)}.b{background:var(--b)}.c{background:var(--c)}.d{background:var(--d);color:#3b2a00}.p{background:var(--p)}.g{background:var(--card);color:var(--ink);border:3px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row .btn{flex:1;min-width:140px}
+input,textarea{width:100%;font:inherit;font-size:18px;padding:12px;border:3px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);margin:6px 0}
+label{font-weight:800}.err{color:var(--b);font-weight:800;font-size:15px;min-height:18px}
+.bar{height:18px;background:var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--d));border-radius:12px;transition:width .4s}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-weight:700;font-size:19px;color:var(--ink);background:var(--bg);border:3px solid var(--line);border-radius:16px;padding:14px;margin:9px 0;cursor:pointer}
+.opt.ok{background:var(--ok);border-color:var(--c)}.opt.no{background:var(--no);border-color:var(--b)}
+.fb{border-radius:16px;padding:12px 14px;margin:10px 0;font-weight:700}.fb.ok{background:var(--ok)}.fb.no{background:var(--no)}
+.stars{font-size:46px;text-align:center;letter-spacing:6px}.big{font-size:44px;font-weight:800;text-align:center}
+.code{font-family:monospace;font-size:13px;word-break:break-all;min-height:90px}
+.mut{color:var(--mut);font-size:15px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th{background:var(--p);color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:2px solid var(--line)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}.mo>div{background:var(--card);border-radius:22px;padding:20px;max-width:560px;width:100%;max-height:80vh;overflow:auto;font-size:15px}
+.cf{position:fixed;top:-40px;font-size:28px;pointer-events:none;animation:f 1.6s ease-in forwards;z-index:8}@keyframes f{to{transform:translateY(110vh) rotate(360deg);opacity:.2}}
+.hide{display:none}
+</style></head><body><div class="w" id="app"></div>
+<script>
+const PASS='246810',KEY='fl_results_v1';
+const Q=[
+{t:'tf',q:'A formal letter has a greeting and a goodbye.',a:'true',e:'Yes! Every formal letter starts with a greeting and ends with a goodbye.'},
+{t:'tf',q:'The letters "ou" sound the same in "young" and "should".',a:'false',e:'In "young" it sounds like a short u. In "should" it sounds like a short oo.'},
+{t:'mc',q:'Which word has "ou" like the short u sound?',o:['young','group','shoulder'],a:0,e:'"young" has the short u sound, like "couple" and "trouble".'},
+{t:'mc',q:'Which word tells us WHEN the letter was written?',o:['greeting','date','goodbye'],a:1,e:'The date shows when the letter was written.'},
+{t:'mc',q:'The "o" in "move" sounds like the long...',o:['oo sound','u sound','o sound'],a:0,e:'"move" has the long oo sound, like "moo".'},
+{t:'fib',q:'A formal letter ends with a ______. (Hint: g _ _ _ b _ e)',a:['goodbye'],e:'The goodbye comes at the end of the letter.'},
+{t:'fib',q:'Information that is stated in the text is called ______ information. (Hint: e _ _ _ _ _ _ t)',a:['explicit'],e:'Explicit information is written clearly in the text.'},
+{t:'tf',q:'Implicit information is something we work out using clues in the text.',a:'true',e:'Yes! We infer implicit information from clues.'},
+{t:'mc',q:'Which word has "ou" like the short oo sound?',o:['could','you','boulder'],a:0,e:'"could", "would" and "should" have the short oo sound.'},
+{t:'fib',q:'A formal letter has the date, the addresses and the ______ of the people. (Hint: n _ _ _ s)',a:['names','name'],e:'We write the names of the people in a formal letter.'},
+{t:'w',q:'Optional: Write one sentence to say "thank you" in a letter. ✍️'}];
+const CH=['Great job! 🌟','Super! ⭐','Wow, you got it! 🎉','Brilliant! 🏅','Fantastic! 🌈'];
+let S={},st=null,R=[],tmp=0;
+const $=id=>document.getElementById(id),app=$('app');
+const esc=s=>{const d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML.replace(/"/g,'&quot;')};
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function save(r){R.push(r);try{const a=load();a.push(r);localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}}
+function all(){const seen=new Set();return load().concat(R).filter(r=>{const k=r.email+'|'+r.startTime;if(seen.has(k))return false;seen.add(k);return true})}
+function home(){stopSay();app.innerHTML=`<div class="card"><div class="hero">💌📬✉️</div><h1 style="text-align:center">Formal Letter Quiz</h1><p style="text-align:center">Unit 2: Letters. Let's learn about letters, sounds and clues! Win stars! ⭐</p>
+<button class="btn b" onclick="gate()">🚀 Start the Quiz</button><button class="btn g" onclick="tgate()">🧑‍🏫 Teacher Hub</button></div>`}
+function gate(){app.innerHTML=`<div class="card"><h2>👋 Who are you?</h2><label>Your name</label><input id="nm" placeholder="e.g. Mia Thompson" maxlength="60"><div class="err" id="e1"></div><label>Your email</label><input id="em" type="email" placeholder="e.g. mia@school.com" maxlength="80"><div class="err" id="e2"></div>
+<button class="btn c" onclick="begin()">Let's go! 🎈</button><button class="btn g" onclick="home()">← Back</button></div>`}
+function begin(){const n=$('nm').value.trim(),e=$('em').value.trim();let ok=true;
+$('e1').textContent=n?'':'Please write your name 😊';$('e2').textContent=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)?'':'Please write a correct email 📧';
+if(!n||$('e2').textContent)return;st={n,e,t:Date.now(),i:0,ans:[],lock:false};rq()}
+function right(q,v){if(q.t==='fib')return q.a.includes(String(v).trim().toLowerCase());return v===q.a}
+function rq(){const q=Q[st.i],i=st.i,v=st.ans[i],L=st.lock;let body='';
+if(q.t==='tf')body=[['true','✅ True'],['false','❌ False']].map(([k,l])=>`<button class="opt ${L?(k===q.a?'ok':(k===v?'no':'')):''}" onclick="pick('${k}')">${l}</button>`).join('');
+else if(q.t==='mc')body=q.o.map((o,k)=>`<button class="opt ${L?(k===q.a?'ok':(k===v?'no':'')):''}" onclick="pick(${k})">${'abc'[k]}) ${esc(o)}</button>`).join('');
+else if(q.t==='fib')body=`<input id="fib" placeholder="Type your answer..." ${L?'disabled value="'+esc(v)+'"':''} onkeydown="if(event.key==='Enter')fibGo()">`+(L?'':`<button class="btn d" onclick="fibGo()">Check ✔️</button>`);
+else body=`<textarea id="wr" rows="3" placeholder="Write here..."></textarea>`;
+let fb='';if(L&&q.t!=='w'){const r=right(q,v);fb=`<div class="fb ${r?'ok':'no'}">${r?CH[i%5]:'Nice try! 💛 You can do it next time.'}<br>${esc(q.e)}</div>`}
+const last=i===Q.length-1;
+app.innerHTML=`<div class="card"><div class="bar"><i style="width:${(i/Q.length)*100}%"></i></div><div class="mut">Question ${i+1} of ${Q.length}</div><h2>${esc(q.q)}</h2>
+<button class="btn g" style="width:auto;display:inline-block;padding:8px 14px;font-size:15px" onclick="say()">🔊 Read aloud</button>${body}${fb}
+${q.t==='w'?`<button class="btn c" onclick="fin()">Finish 🏁</button>`:(L?`<button class="btn c" onclick="${last?'fin()':'nx()'}">${last?'Finish 🏁':'Next →'}</button>`:'')}</div>`}
+function pick(v){if(st.lock)return;st.ans[st.i]=v;st.lock=true;if(right(Q[st.i],v))boom();rq()}
+function fibGo(){const v=$('fib').value.trim();if(v)pick(v)}
+function nx(){st.i++;st.lock=false;stopSay();rq();window.scrollTo(0,0)}
+function say(){if(!('speechSynthesis' in window))return;stopSay();const q=Q[st.i];const u=new SpeechSynthesisUtterance(q.q.replace(/_+/g,'blank')+(q.o?'. '+q.o.join('. '):''));u.rate=.85;speechSynthesis.speak(u)}
+function stopSay(){if('speechSynthesis' in window)speechSynthesis.cancel()}
+function boom(){for(let i=0;i<16;i++){const s=document.createElement('span');s.className='cf';s.textContent=['⭐','🎉','🌟','✨'][i%4];s.style.left=Math.random()*95+'vw';s.style.animationDelay=Math.random()*.4+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),2200)}}
+function grade(ans){let s=0,n=0;const d=Q.map((q,i)=>{const v=ans[i];if(q.t==='w')return{q:q.q,s:v||'(no answer)',c:'(not scored)',ok:null};n++;let c,sv;
+if(q.t==='tf'){c=q.a==='true'?'True':'False';sv=v==='true'?'True':v==='false'?'False':'(no answer)'}
+else if(q.t==='mc'){c=q.o[q.a];sv=typeof v==='number'?q.o[v]:'(no answer)'}
+else{c=q.a[0];sv=v||'(no answer)'}
+const ok=v!=null&&right(q,v);if(ok)s++;return{q:q.q,s:sv,c,ok}});return{s,n,d}}
+function cs(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h.toString(36).toUpperCase()}
+function mk(p){const b=btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return'FL-'+b+'-'+cs(b)}
+function dec(c){const m=c.trim().match(/^FL-([A-Za-z0-9_-]+)-([A-Z0-9]+)$/);if(!m||cs(m[1])!==m[2])return null;
+try{let b=m[1].replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';const p=JSON.parse(decodeURIComponent(escape(atob(b))));const g=grade(p.a);
+return{name:String(p.n),email:String(p.e),score:g.s,total:g.n,pct:Math.round(g.s/g.n*100),startTime:new Date(p.t).toISOString(),dur:p.d,detail:g.d}}catch(e){return null}}
+function fin(){stopSay();if(st.i===Q.length-1&&Q[st.i].t==='w'){const w=$('wr');if(w)st.ans[st.i]=w.value}
+const dur=Math.round((Date.now()-st.t)/1000),code=mk({n:st.n,e:st.e,t:st.t,d:dur,a:st.ans}),r=dec(code);save(r);
+const pc=r.pct,stars=pc>=90?3:pc>=60?2:1,msg=['Good try! Practise again 💪','Great work! You know letters well! 🎉','AMAZING! You are a Letter Superstar! 🏆'][stars-1];boom();
+app.innerHTML=`<div class="card"><div class="hero">🏆</div><h2 style="text-align:center">Well done, ${esc(st.n)}!</h2><div class="big">${r.score} / ${r.total}</div><div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p style="text-align:center">${msg}</p>
+<div class="card" style="border-style:dashed;border-color:var(--d)"><b>🔑 Your Result Code</b><textarea id="cd" class="code" readonly>${code}</textarea><button class="btn d" onclick="cp()">📋 Copy Code</button><div class="mut">Copy this code and send it to your teacher.</div></div>
+<button class="btn g" onclick="home()">🏠 Home</button></div>`}
+function cp(){const t=$('cd');t.select();(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).catch(()=>{try{document.execCommand('copy')}catch(e){}});alert('Code copied! ✅')}
+function tgate(){app.innerHTML=`<div class="card"><h2>🔒 Teacher Hub</h2><input id="pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')tlogin()"><div class="err" id="pe"></div><button class="btn p" onclick="tlogin()">Unlock 🔓</button><button class="btn g" onclick="home()">← Back</button></div>`}
+function tlogin(){if($('pw').value===PASS)dash();else $('pe').textContent='Wrong password, try again.'}
+function dash(msg){const L=all();tmp=L;
+const rows=L.map((r,i)=>`<tr><td>${esc(r.name)}</td><td>${esc(r.email)}</td><td>${r.score}/${r.total}</td><td>${r.pct}%</td><td>${esc(new Date(r.startTime).toLocaleString())}</td><td>${r.dur}s</td><td><button class="btn a" style="padding:6px 10px;font-size:13px;margin:0" onclick="view(${i})">View</button></td></tr>`).join('');
+app.innerHTML=`<div class="card"><h2>📊 Teacher Dashboard</h2><b>Paste result codes</b><div class="mut">One or many codes, separated by lines or spaces.</div><textarea id="ci" class="code" placeholder="FL-..."></textarea>
+<div id="im" class="err" style="color:var(--c)">${msg||''}</div><button class="btn p" onclick="imp()">➕ Add Codes</button>
+<div class="row"><button class="btn d" onclick="xl()">📥 Export to Excel</button><button class="btn g" onclick="clr()">🗑️ Clear</button><button class="btn g" onclick="home()">🏠 Home</button></div></div>
+<div class="card tw">${L.length?`<table><tr><th>Name</th><th>Email</th><th>Score</th><th>%</th><th>Time</th><th>Dur.</th><th></th></tr>${rows}</table>`:'<p class="mut">No results yet. Paste a code above 🌱</p>'}</div>`}
+function imp(){const cs_=$('ci').value.split(/\s+/).filter(Boolean);let ok=0,bad=0;const before=all().length;cs_.forEach(c=>{const r=dec(c);if(r){save(r);ok++}else bad++});
+const added=all().length-before,dup=ok-added;dash(`✅ ${added} added`+(dup?` · ${dup} duplicate skipped`:'')+(bad?` · ⚠️ ${bad} invalid code(s) — check for missing characters`:''));if(bad)$('im').style.color='var(--b)'}
+function view(i){const r=tmp[i];const m=document.createElement('div');m.className='mo';m.onclick=e=>{if(e.target===m)m.remove()};
+m.innerHTML=`<div><h2>${esc(r.name)}</h2><div class="mut">${esc(r.email)} · ${r.score}/${r.total} (${r.pct}%)</div>`+r.detail.map((d,k)=>`<p><b>${k+1}. ${esc(d.q)}</b> ${d.ok===null?'📝':d.ok?'✅':'❌'}<br>Answer: <i>${esc(d.s)}</i>${d.ok===false?'<br>Correct: <i>'+esc(d.c)+'</i>':''}</p>`).join('')+`<button class="btn g" onclick="this.closest('.mo').remove()">Close</button></div>`;document.body.appendChild(m)}
+function clr(){if(confirm('Clear all saved results on this device?')){R=[];try{localStorage.removeItem(KEY)}catch(e){}dash()}}
+function xl(){const L=all();if(!L.length){alert('No results to export yet.');return}if(typeof XLSX==='undefined'){alert('Excel tool did not load. Check your internet and refresh.');return}
+const S1=L.map(r=>({Name:r.name,Email:r.email,Score:r.score,Total:r.total,Percentage:r.pct+'%','Start Time':new Date(r.startTime).toLocaleString(),'Duration (s)':r.dur,Correct:r.detail.filter(d=>d.ok===true).length,Incorrect:r.detail.filter(d=>d.ok===false).length}));
+const S2=[];L.forEach(r=>r.detail.forEach((d,k)=>S2.push({Name:r.name,Email:r.email,'Q#':k+1,Question:d.q,'Student Answer':d.s,'Correct Answer':d.c,Result:d.ok===null?'Not scored':d.ok?'Correct':'Incorrect'})));
+const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S1),'Summary');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S2),'Detailed Answers');XLSX.writeFile(wb,'Formal_Letter_Quiz_Results.xlsx')}
+home();
+</script></body></html>
